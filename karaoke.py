@@ -1,6 +1,7 @@
 import glob
 import json
 import logging
+import keyboard
 import os
 import random
 import socket
@@ -321,6 +322,11 @@ class Karaoke:
                     alarm(0)
                 except Alarm:
                     raise KeyboardInterrupt
+
+            # Dirty hack to get the damn thing to render the screen
+            keyboard.press_and_release('f')
+            keyboard.press_and_release('f')
+
             logging.debug("Done initializing splash screen")
 
     def toggle_full_screen(self):
