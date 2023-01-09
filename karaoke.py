@@ -8,7 +8,6 @@ import subprocess
 import sys
 import threading
 import time
-import contextlib
 from io import BytesIO
 from pathlib import Path
 from subprocess import check_output
@@ -48,6 +47,7 @@ class Karaoke:
         self,
         port=5000,
         download_path="/usr/lib/pikaraoke/songs",
+        random_path="/usr/lib/pikaraoke/songs",
         hide_ip=False,
         hide_raspiwifi_instructions=False,
         hide_splash_screen=False,
@@ -74,6 +74,7 @@ class Karaoke:
         self.hide_splash_screen = hide_splash_screen
         self.omxplayer_adev = omxplayer_adev
         self.download_path = download_path
+        self.random_path = random_path
         self.dual_screen = dual_screen
         self.high_quality = high_quality
         self.splash_delay = int(splash_delay)
@@ -107,6 +108,7 @@ class Karaoke:
     hide splash: %s
     splash_delay: %s
     omx audio device: %s
+    random path: %s
     dual screen: %s
     high quality video: %s
     download path: %s
@@ -126,6 +128,7 @@ class Karaoke:
                 self.hide_raspiwifi_instructions,
                 self.hide_splash_screen,
                 self.splash_delay,
+                self.random_path,
                 self.omxplayer_adev,
                 self.dual_screen,
                 self.high_quality,
@@ -165,6 +168,9 @@ class Karaoke:
 
         # get songs from download_path
         self.get_available_songs()
+
+        # get songs for random
+        self.get_available_songs_for_random()
 
         self.get_youtubedl_version()
 
@@ -484,10 +490,23 @@ class Karaoke:
 
         self.available_songs = sorted(files_grabbed, key=lambda f: str.lower(os.path.basename(f)))
 
+    def get_available_songs_for_random(self):
+        logging.info("Fetching available songs in: " + self.random_path)
+        types = ['.mp4', '.mp3', '.zip', '.mkv', '.avi', '.webm', '.mov']
+        files_grabbed = []
+        P=Path(self.random_path)
+        for file in P.rglob('*.*'):
+            base, ext = os.path.splitext(file.as_posix())
+            if ext.lower() in types:
+                if os.path.isfile(file.as_posix()):
+                    logging.debug("adding song: " + file.name)
+                    files_grabbed.append(file.as_posix())
+
+        self.available_songs_for_random = sorted(files_grabbed, key=lambda f: str.lower(os.path.basename(f)))
+
     def delete(self, song_path):
         logging.info("Deleting song: " + song_path)
-        with contextlib.suppress(FileNotFoundError):
-            os.remove(song_path)
+        os.remove(song_path)
         ext = os.path.splitext(song_path)
         # if we have an associated cdg file, delete that too
         cdg_file = song_path.replace(ext[1],".cdg")
@@ -594,7 +613,7 @@ class Karaoke:
 
     def queue_add_random(self, amount):
         logging.info("Adding %d random songs to queue" % amount)
-        songs = list(self.available_songs)  # make a copy
+        songs = list(self.available_songs_for_random)  # make a copy
         if len(songs) == 0:
             logging.warn("No available songs!")
             return False

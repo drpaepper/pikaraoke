@@ -652,6 +652,13 @@ if __name__ == "__main__":
         required=False,
     )
     parser.add_argument(
+        "-r",
+        "--random-path",
+        help="Desired path to select random songs from. (default %s)" % default_dl_dir,
+        default=default_dl_dir,
+        required=False,
+    )
+    parser.add_argument(
         "-o",
         "--omxplayer-path",
         help="Path of omxplayer. Only important to raspberry pi hardware. (default: %s)"
@@ -812,6 +819,16 @@ if __name__ == "__main__":
         print("Creating download path: " + dl_path)
         os.makedirs(dl_path)
 
+    if args.download_path == args.random_path:
+        rnd_path=dl_path
+    else:
+        rnd_path = os.path.expanduser(args.random_path)
+        if not rnd_path.endswith("/"):
+            rnd_path += "/"
+        if not os.path.exists(rnd_path):
+            print("Creating random songs path: " + rnd_path)
+            os.makedirs(rnd_path)
+
     if (args.developer_mode):
         logging.warning("Splash screen is disabled in developer mode due to main thread conflicts")
         args.hide_splash_screen = True
@@ -821,6 +838,7 @@ if __name__ == "__main__":
     k = karaoke.Karaoke(
         port=args.port,
         download_path=dl_path,
+        random_path=rnd_path,
         omxplayer_path=args.omxplayer_path,
         youtubedl_path=args.youtubedl_path,
         splash_delay=args.splash_delay,
