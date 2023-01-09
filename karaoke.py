@@ -282,6 +282,8 @@ class Karaoke:
                 ] = "1"  # HACK apparently if display mode is fullscreen the vlc window will be at the bottom of pygame
                 return pygame.NOFRAME
             else:
+                os.environ['SDL_VIDEODRIVER'] = 'fbcon'
+                os.environ['SDL_FBDEV'] = '/dev/fb0'
                 return pygame.FULLSCREEN
         else:
             return pygame.FULLSCREEN

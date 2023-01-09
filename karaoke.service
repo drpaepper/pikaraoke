@@ -1,0 +1,13 @@
+[Unit]
+Description=Karaoke Party
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/app/pikaraoke/start_app.sh
+Type=simple
+User=karaoke
+Group=karaoke
+
+[Install]
+WantedBy=default.target
